@@ -79,8 +79,8 @@ def softmax_loss_vectorized(W, X, y, reg):
     exp_scores=np.exp(scores)
     sum_exp_scores=np.sum(exp_scores,axis=1,keepdims=True)
     softmax=exp_scores/sum_exp_scores
-    loss=np.sum(-np.log(softmax))
-    loss/X.shape[0]
+    loss=np.sum(-np.log(softmax[np.arange(X.shape[0]),y]))
+    loss/=X.shape[0]
     loss+=reg*np.sum(W*W)
     softmax[np.arange(X.shape[0]),y]-=1
     dW=X.T.dot(softmax)/X.shape[0]

@@ -28,7 +28,10 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N=x.shape[0]
+    D=np.prod(x.shape[1:])
+    x_reshaped=x.reshape(N,D)
+    out=x_reshaped.dot(w)+b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -61,7 +64,13 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = x.shape[0]
+    D = w.shape[0]
+    x_reshaped = x.reshape(N, D)
+
+    dx=dout.dot(w.T).reshape(x.shape)
+    dw=x_reshaped.T.dot(dout)
+    db=dout.sum(axis=0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -81,13 +90,14 @@ def relu_forward(x):
     - out: Output, of the same shape as x
     - cache: x
     """
+
     out = None
     ###########################################################################
     # TODO: Implement the ReLU forward pass.                                  #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out=np.maximum(0,x)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -114,7 +124,8 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx=np.array(dout,copy=True)
+    dx[x<0]=0
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -773,7 +784,20 @@ def svm_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N=x.shape[0]
+    correct_x=x[np.arange(N),y]
+    margin=np.maximum(0,x-correct_x[:,np.newaxis]+1)
+    loss=np.sum(margin)
+    loss/=N
+
+    dx=x
+    dx[(x-correct_x[:,np.newaxis]+1)<0]=0
+
+    margins_binary=margin>0
+    margins_binary=margins_binary.astype(float)
+    row_sum=np.sum(margins_binary, axis=1)
+    margins_binary[np.arange(N), y]-=row_sum
+    dx=margins_binary/N
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -803,7 +827,25 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N=x.shape[0]
+    C=x.shape[1]
+
+    x-=np.max(x,axis=1,keepdims=True)
+    exp_x=np.exp(x)
+    sum_exp_x=np.sum(exp_x,axis=1,keepdims=True)
+    softmax=exp_x/sum_exp_x
+    # correct_log_probs = -np.log(softmax[np.arange(N), y])  # 正确类别的 log 概率
+    # loss = np.sum(correct_log_probs) / N
+    loss=np.sum(-np.log(softmax[np.arange(N),y]))
+    loss/=N
+    
+    # loss函数和x的关系
+    # loss = sum( exp(x_i)/sum(x_i) )
+    # loss和不同的没有关系
+
+    dx=softmax.copy()
+    dx[np.arange(N),y]-=1 
+    dx/=N
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
